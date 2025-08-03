@@ -2,12 +2,18 @@ import { createContext, useEffect, useState } from "react";
 import { dummyCourses } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from 'humanize-duration';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import axios from 'axios';
+
 
 export const AppContext = createContext()
 export const AppContextProvider = ( props ) => {
 
     const currency = import.meta.env.VITE_CURRENCY
     const navigate = useNavigate()
+
+    const { getToken } = useAuth()
+    const { user } = useUser()
 
     const [ allCourses, setAllCourses ] = useState( [] )
     const [ isEducator, setIsEducator ] = useState( true )
@@ -63,8 +69,32 @@ export const AppContextProvider = ( props ) => {
 
     // Fetch User Enrolled Courses
     const fetchUserEnrolledCourses = async () => {
-        setEnrolledCourses(dummyCourses)
+        setEnrolledCourses( dummyCourses )
     }
+
+
+
+    const makeEducator = async () => {
+        try {
+            const token = await getToken()
+            const res = await axios.get( 'http://localhost:5000/api/educator/update-role', {
+                headers: {
+                    Authorization: `Bearer ${ token }`,
+                },
+            } )
+            if ( res.data.success ) {
+                setIsEducator( true )
+                alert( "You are now an educator! You can publish a course." )
+            } else {
+                alert( res.data.message || "Failed to update role." )
+            }
+        } catch ( error ) {
+            console.error( "Error updating educator role:", error )
+            alert( "Something went wrong." )
+        }
+    }
+
+
 
 
 
@@ -73,8 +103,19 @@ export const AppContextProvider = ( props ) => {
         fetchUserEnrolledCourses()
     }, [] )
 
+
+    useEffect( () => {
+        const logToken = async () => {
+            console.log( await getToken() );
+        }
+        if ( user ) {
+            logToken()
+        }
+    }, [ user ] )
+
+
     const value = {
-        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, calculateNoOfLectures, calculateCourseDuration,calculateChapterTime, enrolledCourses, fetchUserEnrolledCourses
+        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, calculateNoOfLectures, calculateCourseDuration, calculateChapterTime, enrolledCourses, fetchUserEnrolledCourses
     }
 
     return (
