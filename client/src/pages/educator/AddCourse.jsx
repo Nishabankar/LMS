@@ -92,7 +92,9 @@ const AddCourse = () => {
     }
 
     const handleSubmit = async ( e ) => {
-        e.prventDefault()
+        e.preventDefault()
+
+
     };
 
     useEffect( () => {
