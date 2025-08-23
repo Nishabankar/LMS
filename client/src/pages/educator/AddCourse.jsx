@@ -2,8 +2,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import uniqid from 'uniqid'
 import Quil from 'quill'
 import { assets } from '../../assets/assets';
+import { useAuth } from '@clerk/clerk-react';
+
 
 const AddCourse = () => {
+    const { getToken } = useAuth();
 
     const quilRef = useRef( null );
     const editorRef = useRef( null );
@@ -25,30 +28,30 @@ const AddCourse = () => {
         }
     )
 
-    const handleChapter = (action, chapterId) => {
-    if (action === 'add') {
-        const title = prompt('Enter Chapter Name:');
-        if (title) {
-            const newChapter = {
-                chapterId: uniqid(),
-                chapterTitle: title,
-                chapterContent: [],
-                collapsed: false,
-                chapterOrder: chapters.length > 0 ? chapters.slice(-1)[0].chapterOrder + 1 : 1,
-            };
-            setChapters([...chapters, newChapter]);
+    const handleChapter = ( action, chapterId ) => {
+        if ( action === 'add' ) {
+            const title = prompt( 'Enter Chapter Name:' );
+            if ( title ) {
+                const newChapter = {
+                    chapterId: uniqid(),
+                    chapterTitle: title,
+                    chapterContent: [],
+                    collapsed: false,
+                    chapterOrder: chapters.length > 0 ? chapters.slice( -1 )[ 0 ].chapterOrder + 1 : 1,
+                };
+                setChapters( [ ...chapters, newChapter ] );
+            }
+        } else if ( action === 'remove' ) {
+            setChapters( chapters.filter( ( chapter ) => chapter.chapterId !== chapterId ) );
+        } else if ( action === 'toggle' ) {
+            const updated = chapters.map( ( chapter ) =>
+                chapter.chapterId === chapterId
+                    ? { ...chapter, collapsed: !chapter.collapsed }
+                    : chapter
+            );
+            setChapters( updated );
         }
-    } else if (action === 'remove') {
-        setChapters(chapters.filter((chapter) => chapter.chapterId !== chapterId));
-    } else if (action === 'toggle') {
-        const updated = chapters.map((chapter) =>
-            chapter.chapterId === chapterId
-                ? { ...chapter, collapsed: !chapter.collapsed }
-                : chapter
-        );
-        setChapters(updated);
-    }
-};
+    };
 
     const handleLecture = ( action, chapterId, lectureIndex ) => {
         if ( action === 'add' ) {
@@ -62,7 +65,7 @@ const AddCourse = () => {
                         chapter.chapterContent.splice( lectureIndex, 1 );
                     }
                     return chapter;
-                })
+                } )
             )
         }
     }
@@ -79,7 +82,7 @@ const AddCourse = () => {
                     chapter.chapterContent.push( newLecture );
                 }
                 return chapter;
-            })
+            } )
         )
 
         setShowPopup( false );
@@ -88,7 +91,7 @@ const AddCourse = () => {
             lectureDuration: '',
             lectureUrl: '',
             isPreviewFree: false,
-        })
+        } )
     }
 
     const handleSubmit = async ( e ) => {
@@ -110,7 +113,7 @@ const AddCourse = () => {
 
     return (
         <div className='h-screen overflow-hidden flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-            <form onSubmit={ handleSubmit} className='flex flex-col gap-4 max-w-md w-full text-gray-500'>
+            <form onSubmit={handleSubmit} className='flex flex-col gap-4 max-w-md w-full text-gray-500'>
                 <div className='flex flex-col gap-1'>
                     <p>Course Title</p>
                     <input
@@ -153,14 +156,14 @@ const AddCourse = () => {
                         <div key={chapterIndex} className='bg-white border rounded-lg mb-4'>
                             <div className='flex justify-between items-center p-4 border-b'>
                                 <div className='flex items-center'>
-                                    <img onClick={()=> handleChapter('toggle', chapter.chapterId)}
+                                    <img onClick={() => handleChapter( 'toggle', chapter.chapterId )}
                                         src={assets.dropdown_icon} width={14} alt=""
                                         className={`mr-2 cursor-pointer transition-all ${ chapter.collapsed && "rotate-90" }`}
                                     />
                                     <span className='font-semibold'>{chapterIndex + 1}{chapter.chapterTitle}</span>
                                 </div>
                                 <span className='text-gray-500'>{chapter.chapterContent.length} lectures</span>
-                                <img onClick={()=> handleChapter('remove', chapter.chapterId)}
+                                <img onClick={() => handleChapter( 'remove', chapter.chapterId )}
                                     src={assets.cross_icon} alt="" className='cursor-pointer' />
                             </div>
 
@@ -174,17 +177,17 @@ const AddCourse = () => {
                                                     className='text-blue-500'>Link</a> - {lecture.isPreviewFree ? 'Free Preview' : 'paid'}
                                             </span>
                                             <img src={assets.cross_icon} alt=""
-                                            onClick={()=> handleLecture('remove', chapter.chapterId, lectureIndex)}
-                                            className='cursor-pointer' />
+                                                onClick={() => handleLecture( 'remove', chapter.chapterId, lectureIndex )}
+                                                className='cursor-pointer' />
                                         </div>
                                     ) )}
 
-                                    <div className='inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2' onClick={() =>handleLecture('add', chapter.chapterId)}>+ Add Lecture</div>
+                                    <div className='inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2' onClick={() => handleLecture( 'add', chapter.chapterId )}>+ Add Lecture</div>
                                 </div>
                             )}
                         </div>
                     ) )}
-                    <div className='flex justify-center items-center bg-blue-100 p-2 rounded-lg cursor-pointer' onClick={()=> handleChapter('add')}>+ Add Chapter</div>
+                    <div className='flex justify-center items-center bg-blue-100 p-2 rounded-lg cursor-pointer' onClick={() => handleChapter( 'add' )}>+ Add Chapter</div>
 
 
                     {showPopup && (
@@ -242,7 +245,7 @@ const AddCourse = () => {
                             </div>
                         </div>
                     )
-                }
+                    }
                 </div>
                 <button type='submit' className='bg-black text-white w-max py-2.5 px-8 rounded my-4'>
                     ADD

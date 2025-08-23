@@ -3,7 +3,6 @@ import { dummyCourses } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from 'humanize-duration';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import axios from 'axios';
 
 
 export const AppContext = createContext()
@@ -73,42 +72,19 @@ export const AppContextProvider = ( props ) => {
     }
 
 
-
-    const makeEducator = async () => {
-        try {
-            const token = await getToken()
-            const res = await axios.get( 'http://localhost:5000/api/educator/update-role', {
-                headers: {
-                    Authorization: `Bearer ${ token }`,
-                },
-            } )
-            if ( res.data.success ) {
-                setIsEducator( true )
-                alert( "You are now an educator! You can publish a course." )
-            } else {
-                alert( res.data.message || "Failed to update role." )
-            }
-        } catch ( error ) {
-            console.error( "Error updating educator role:", error )
-            alert( "Something went wrong." )
-        }
-    }
-
-
-
-
-
     useEffect( () => {
         fetchAllCourses()
         fetchUserEnrolledCourses()
     }, [] )
 
 
-    useEffect( () => {
-        const logToken = async () => {
-            console.log( await getToken() );
+     const logToken = async () => {
+            console.log( await getToken());
         }
-        if ( user ) {
+
+
+    useEffect(() => {
+        if(user) {
             logToken()
         }
     }, [ user ] )
