@@ -38,7 +38,9 @@ export const purchaseCourse = async (req, res) => {
     const { courseId } = req.body;
     const { origin } = req.headers;
     const userId = req.auth.userId;
-    const userData = await User.findOne({ clerkId: userId });
+
+    // ✅ fix here
+    const userData = await User.findById(userId);
     const courseData = await Course.findById(courseId);
 
     if (!userData || !courseData) {
@@ -47,7 +49,7 @@ export const purchaseCourse = async (req, res) => {
 
     const purchaseData = {
       courseId: courseData._id,
-      userId: userData._id, // ✅ use MongoDB _id, not ClerkId
+      userId: userData._id,
       amount: (
         courseData.coursePrice -
         (courseData.discount * courseData.coursePrice) / 100
@@ -56,12 +58,9 @@ export const purchaseCourse = async (req, res) => {
 
     const newPurchase = await Purchase.create(purchaseData);
 
-    // stripe Gateway Initialize
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-
     const currency = process.env.CURRENCY.toLowerCase();
 
-    // Creating line items to for Stripe
     const line_items = [
       {
         price_data: {
@@ -78,18 +77,16 @@ export const purchaseCourse = async (req, res) => {
     const session = await stripeInstance.checkout.sessions.create({
       success_url: `${origin}/loading/my-enrollments`,
       cancel_url: `${origin}/`,
-      line_items: line_items,
+      line_items,
       mode: "payment",
-      metadata: {
-        purchaseId: newPurchase._id.toString(),
-      },
+      metadata: { purchaseId: newPurchase._id.toString() },
     });
+
     res.json({ success: true, session_url: session.url });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
-
 
 // Update User Course Progress
 export const updateUserCourseProgress = async ( req, res ) => {
